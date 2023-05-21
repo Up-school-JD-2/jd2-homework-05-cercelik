@@ -5,36 +5,16 @@ import java.util.Random;
 
 public class PaymentService {
 
-	private boolean isValidCardExpiryDate = false;
 	private int count;
 
-	/**
-	 * @return the isValidCardExpiryDate
-	 */
-	public boolean isValidCardExpiryDate() {
-		return isValidCardExpiryDate;
+	public void checkPaymentValue(String paymentValue) throws PaymentValueInvalidException {
+		if (!isValidPaymentValue(paymentValue)) {
+			throw new PaymentValueInvalidException(
+					"Ödeme tutarı geçersizdir.Ödeme tutarı virgül içeremez ve negatif değer olamaz.", paymentValue);
+		}
 	}
 
-	// payment value methods
-	public void checkPaymentValue(String paymentValue) {
-
-		try {
-
-			if (!isValidPaymentValue(paymentValue)) {
-
-				throw new PaymentValueInvalidException(
-						"Ödeme tutarı geçersizdir.Ödeme tutarı virgül içeremez ve negatif değer olamaz.", paymentValue);
-			}
-
-		}
-		catch (PaymentValueInvalidException e) {
-			System.out.printf("%s hatalı alan: %s\n", e.getMessage(), e.getText());
-
-		}
-
-	}
-
-	public boolean isValidPaymentValue(String str) {
+	private boolean isValidPaymentValue(String str) {
 		if (str.contains(",")) {
 			return false;
 		}
@@ -46,23 +26,16 @@ public class PaymentService {
 	}
 
 	// card number methods
-	public void checkCardNumber(String cardNumber) {
+	public void checkCardNumber(String cardNumber) throws CardNumberInvalidException {
 
-		try {
-
-			if (!isValidCardNumber(cardNumber) | !isDigit(cardNumber)) {
-				throw new CardNumberInvalidException(
-						"Kart numarası geçersizdir. Kart numarası 16 haneli olmalı ve rakamlardan oluşmalıdır.",
-						cardNumber);
-			}
-
-		} catch (CardNumberInvalidException e) {
-			System.out.printf("%s hatalı alan: %s", e.getMessage(), e.getText());
-			System.out.println();
+		if (!isValidCardNumber(cardNumber) | !isDigit(cardNumber)) {
+			throw new CardNumberInvalidException(
+					"Kart numarası geçersizdir. Kart numarası 16 haneli olmalı ve rakamlardan oluşmalıdır.",
+					cardNumber);
 		}
 	}
 
-	public boolean isValidCardNumber(String str) {
+	private boolean isValidCardNumber(String str) {
 
 		if (str.length() != 16) {
 			return false;
@@ -72,7 +45,7 @@ public class PaymentService {
 
 	}
 
-	public boolean isDigit(String str) {
+	private boolean isDigit(String str) {
 
 		for (char c : str.toCharArray()) {
 			if (!Character.isDigit(c)) {
@@ -84,20 +57,16 @@ public class PaymentService {
 	}
 
 	// cvv methods
-	public void checkCvv(String cvv) {
-		try {
+	public void checkCvv(String cvv) throws CvvNumberInvalidException {
 
-			if (!isValidCvv(cvv) | !isDigit(cvv)) {
-				throw new CvvNumberInvalidException(
-						"Cvv numarası geçersizdir. Cvv numarası 3 haneli olmalı ve rakamlardan oluşmalıdır.", cvv);
-			}
-		} catch (CvvNumberInvalidException e) {
-			System.out.printf("%s hatalı alan: %s", e.getMessage(), e.getText());
-			System.out.println();
+		if (!isValidCvv(cvv) | !isDigit(cvv)) {
+			throw new CvvNumberInvalidException(
+					"Cvv numarası geçersizdir. Cvv numarası 3 haneli olmalı ve rakamlardan oluşmalıdır.", cvv);
 		}
+
 	}
 
-	public boolean isValidCvv(String str) {
+	private boolean isValidCvv(String str) {
 
 		if (str.length() != 3) {
 			return false;
@@ -105,30 +74,16 @@ public class PaymentService {
 		return true;
 	}
 
-	public void checkCardExpiryDate(String creditCardExpiryDateString) {
+	public void checkCardExpiryDate(String creditCardExpiryDateString)
+			throws ExpiryDateInvalidException, ParseException {
 
-		try {
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/yy");
-			simpleDateFormat.setLenient(false);
-			Date expiry = simpleDateFormat.parse(creditCardExpiryDateString);
-			boolean expired = expiry.before(new Date());
-			if (expired) {
-				throw new ExpiryDateInvalidException("Kartın son geçerlilik tarihi dolmuştur. ",
-						creditCardExpiryDateString);
-			}
-
-			else {
-				isValidCardExpiryDate = true;
-			}
-
-		} catch (ParseException dtpe) {
-
-			System.out.println("Kart son kullanma tarihi hatalıdır:(MM/YY) " + creditCardExpiryDateString);
-		}
-
-		catch (ExpiryDateInvalidException e) {
-
-			System.out.printf("%s hatalı alan: %s\n", e.getMessage(), e.getText());
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/yy");
+		simpleDateFormat.setLenient(false);
+		Date expiry = simpleDateFormat.parse(creditCardExpiryDateString);
+		boolean expired = expiry.before(new Date());
+		if (expired) {
+			throw new ExpiryDateInvalidException("Kartın son geçerlilik tarihi dolmuştur. ",
+					creditCardExpiryDateString);
 		}
 
 	}
@@ -137,33 +92,13 @@ public class PaymentService {
 		Random r = new Random();
 
 		int randomNumber = r.nextInt(100) + 1;
-		System.out.println(randomNumber);
+		System.out.println("Random number değeri: " + randomNumber);
 
 		if (randomNumber > 75 && count < 2) {
 			count++;
 			throw new SystemNotWorkingException("system not working", randomNumber);
 		}
 
-	}
-
-	public void checkPayment() {
-		try {
-
-			pay();
-		}
-
-		catch (SystemNotWorkingException s) {
-
-			System.out.printf("%s hatalı alan: %s", s.getMessage(), s.getText());
-			System.out.println();
-
-			try {
-				pay();
-			} catch (SystemNotWorkingException e) {
-				System.out.printf("%s hatalı alan: %s", s.getMessage(), s.getText());
-			}
-
-		}
 	}
 
 }

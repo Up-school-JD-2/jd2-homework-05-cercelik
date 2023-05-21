@@ -1,3 +1,4 @@
+import java.text.ParseException;
 import java.util.Scanner;
 
 public class Main {
@@ -8,33 +9,88 @@ public class Main {
 		Scanner s = new Scanner(System.in);
 		String paymentValue, cardNumber, cvv;
 
+		boolean isInvalidPaymentValue = true;
+		boolean isInvalidCardNumber = true;
+		boolean isInvalidCvv = true;
+		boolean isInvalidExpiryDate = true;
+
 		do {
-			
 			System.out.print("Ödeme tutarı: ");
 			paymentValue = s.nextLine();
-			paymentService.checkPaymentValue(paymentValue);
-		} while (!paymentService.isValidPaymentValue(paymentValue));
+			try {
+				paymentService.checkPaymentValue(paymentValue);
+				isInvalidPaymentValue = false;
+			} catch (PaymentValueInvalidException e) {
+				System.out.printf("%s hatalı alan: %s\n", e.getMessage(), e.getText());
+			}
+		} while (isInvalidPaymentValue);
 
 		do {
 			System.out.println("Kart numarası: ");
 			cardNumber = s.nextLine();
-			paymentService.checkCardNumber(cardNumber);
-		} while (!paymentService.isValidCardNumber(cardNumber) | !paymentService.isDigit(cardNumber));
+			try {
+				paymentService.checkCardNumber(cardNumber);
+				isInvalidCardNumber = false;
+			}
+
+			catch (CardNumberInvalidException e) {
+				System.out.printf("%s hatalı alan: %s", e.getMessage(), e.getText());
+				System.out.println();
+			}
+
+		} while (isInvalidCardNumber);
 
 		do {
 			System.out.println("Güvenlik numarası: ");
 			cvv = s.nextLine();
-			paymentService.checkCvv(cvv);
-		} while (!paymentService.isValidCvv(cvv) | !paymentService.isDigit(cvv));
+			try {
+				paymentService.checkCvv(cvv);
+				isInvalidCvv = false;
+			}
+
+			catch (CvvNumberInvalidException e) {
+				System.out.printf("%s hatalı alan: %s", e.getMessage(), e.getText());
+				System.out.println();
+			}
+		} while (isInvalidCvv);
 
 		do {
-			System.out.println("Kart geçerlilik tarihi: ");
-			String creditCardExpiryDateString = s.nextLine();
-			paymentService.checkCardExpiryDate(creditCardExpiryDateString);
+			try {
+				System.out.println("Kart geçerlilik tarihi: ");
+				String creditCardExpiryDateString = s.nextLine();
+				try {
+					paymentService.checkCardExpiryDate(creditCardExpiryDateString);
+					isInvalidExpiryDate = false;
+				} catch (ParseException e) {
+					System.out.println("Hatalı alan: " + creditCardExpiryDateString);
+				}
+				
+			}
+			
+			catch (ExpiryDateInvalidException e) {
+				System.out.printf("%s hatalı alan: %s", e.getMessage(), e.getText());
+				System.out.println();
+			}
+			
+			
 
-		} while (!paymentService.isValidCardExpiryDate());
+		} while (isInvalidExpiryDate);
 
-		paymentService.checkPayment();
+		try {
+			paymentService.pay();
+		}
+
+		catch (SystemNotWorkingException e) {
+			System.out.printf("%s hatalı alan: %s", e.getMessage(), e.getText());
+			System.out.println();
+
+			try {
+				paymentService.pay();
+			} catch (SystemNotWorkingException sw) {
+				System.out.printf("%s hatalı alan: %s", sw.getMessage(), sw.getText());
+			}
+		}
+
 	}
 
 }
